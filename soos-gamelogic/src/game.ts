@@ -34,6 +34,11 @@ export enum RobberPhase {
 
 type Action = () => void;
 
+/** Roll a single six-sided die. Returns an integer from 1 to 6. */
+function rollDie(): number {
+  return Math.floor(Math.random() * 6) + 1;
+}
+
 export default class Game {
   forceUpdate: Action = () => { };
 
@@ -223,7 +228,7 @@ export default class Game {
     }
 
     //roll dice
-    const diceRoll = Math.floor(Math.random() * 6) + 1 + Math.floor(Math.random() * 6) + 1;
+    const diceRoll = rollDie() + rollDie();
 
     //distribute resources
     const hexes = this.map.getFrequency(diceRoll);
@@ -329,7 +334,7 @@ export default class Game {
   executeTrade(tradeInResource: number, tradeForResource: number, playerId: number) {
     const player = this.players[playerId];
     if (player.cards[tradeInResource] >= player.tradeRatio[tradeInResource]) {
-      const cost = [ 0, 0, 0, 0, 0 ];
+      const cost = [0, 0, 0, 0, 0];
       cost[tradeInResource] = player.tradeRatio[tradeInResource];
       console.log('executing trade:' + cost);
       player.spend(cost);
@@ -340,27 +345,27 @@ export default class Game {
 
   displayActionOptions(action: BuildActionType) {
     switch (action) {
-    case BuildActionType.Settlement:
-      this.claimedSettlement = false;
-      this.gamePhase = GamePhase.BuildSettlement;
-      for (const road of this.map.roads) {
-        if (road.playerIdx !== this.currPlayerIdx) {
-          continue;
+      case BuildActionType.Settlement:
+        this.claimedSettlement = false;
+        this.gamePhase = GamePhase.BuildSettlement;
+        for (const road of this.map.roads) {
+          if (road.playerIdx !== this.currPlayerIdx) {
+            continue;
+          }
         }
-      }
-      break;
-    case BuildActionType.City:
-      for (const town of this.map.towns) {
-        if (town.isUnclaimed()) {
-          continue;
+        break;
+      case BuildActionType.City:
+        for (const town of this.map.towns) {
+          if (town.isUnclaimed()) {
+            continue;
+          }
         }
-      }
-      this.claimedSettlement = false;
-      this.gamePhase = GamePhase.BuildCity;
-      break;
-    default:
-      console.error(`displayActionOptions unexpected action type: ${actionToString(action)}`);
-      break;
+        this.claimedSettlement = false;
+        this.gamePhase = GamePhase.BuildCity;
+        break;
+      default:
+        console.error(`displayActionOptions unexpected action type: ${actionToString(action)}`);
+        break;
     }
     this.forceUpdate();
   }
@@ -404,9 +409,9 @@ export default class Game {
     }
   }
 
-  removePremove(buildActionJSON: BuildAction){
+  removePremove(buildActionJSON: BuildAction) {
     const buildAction = hydrateBuildAction(buildActionJSON);
-    for (let i = 0; i<this.premoveActions.length; i++) {
+    for (let i = 0; i < this.premoveActions.length; i++) {
       const action = this.premoveActions[i];
       if (action.equals(buildAction)) {
         console.log('deleting premove: ' + i);
@@ -429,29 +434,29 @@ export default class Game {
           action.execute(this);
         }
         //auto trade feature:
-        if(true){
+        if (true) {
           console.log('attempting to trade for player ' + playerIndex);
-          for (const resource of AllResourceTypes){
+          for (const resource of AllResourceTypes) {
             // console.log('checking resource: ' + resource);
             // console.log(' action cost ' + AllBuildCosts[action.type][resource]);
             // console.log(' player has ' + currPlayer.currentResourcesN()[resource]);
 
-            if(AllBuildCosts[action.type][resource] >currPlayer.currentResourcesN()[resource]){
+            if (AllBuildCosts[action.type][resource] > currPlayer.currentResourcesN()[resource]) {
               //find the biggest resource and trade it
               console.log('player ' + playerIndex + ' is missing resource: ' + AllBuildCosts[action.type][resource].toString());
               let maxResource = -1;
               let maxResourceType = -1;
-              for (const hasResource of AllResourceTypes){
+              for (const hasResource of AllResourceTypes) {
                 console.log('checking resource: ' + hasResource);
                 console.log(' maxResource ' + maxResourceType);
-                console.log(' player has ' + currPlayer.currentResources()[hasResource]/currPlayer.tradeRatio[hasResource]);
+                console.log(' player has ' + currPlayer.currentResources()[hasResource] / currPlayer.tradeRatio[hasResource]);
 
-                if(currPlayer.currentResources()[hasResource]/currPlayer.tradeRatio[hasResource]>maxResource){
-                  maxResource = currPlayer.currentResources()[hasResource]/currPlayer.tradeRatio[hasResource];
+                if (currPlayer.currentResources()[hasResource] / currPlayer.tradeRatio[hasResource] > maxResource) {
+                  maxResource = currPlayer.currentResources()[hasResource] / currPlayer.tradeRatio[hasResource];
                   maxResourceType = hasResource;
                 }
               }
-              if (maxResource>=1){
+              if (maxResource >= 1) {
                 console.log('executed autotrade! P' + playerIndex + ' traded ' + maxResourceType + ' for ' + resource);
                 this.executeTrade(maxResourceType, resource, playerIndex);
                 //next turn the player will be one trade closer to building!
@@ -474,8 +479,8 @@ export default class Game {
     } while (playerIndex !== this.currPlayerIdx);
 
     //clean-up:
-    for (let i = this.premoveActions.length-1; i>=0;i--){
-      if(this.premoveActions[i].shouldDisqualify(this)){
+    for (let i = this.premoveActions.length - 1; i >= 0; i--) {
+      if (this.premoveActions[i].shouldDisqualify(this)) {
         this.premoveActions.splice(i, 1);
       }
     }
@@ -562,24 +567,24 @@ export default class Game {
     } else {
 
       let stolenResource = Math.floor(Math.random() * availableResources.length);
-      const lastStealAttempt = stolenResource>0?stolenResource-1:AllResourceTypes.length;
+      const lastStealAttempt = stolenResource > 0 ? stolenResource - 1 : AllResourceTypes.length;
       let counter = 0;
-      while(!robbedPlayer.hasResource(stolenResource) && stolenResource!=lastStealAttempt && counter<10) {
-        stolenResource+=1;
-        if (stolenResource>=AllResourceTypes.length){
+      while (!robbedPlayer.hasResource(stolenResource) && stolenResource != lastStealAttempt && counter < 10) {
+        stolenResource += 1;
+        if (stolenResource >= AllResourceTypes.length) {
           stolenResource = 0;
         }
-        counter+=1;
+        counter += 1;
       }
-      if(robbedPlayer.hasResource(stolenResource)){
+      if (robbedPlayer.hasResource(stolenResource)) {
         robbedPlayer.lose(stolenResource);
         this.getCurrPlayer().addCard(stolenResource);
         this.instructionText =
-        `${this.getCurrPlayer().name} stole ${resourceToString(availableResources[stolenResource])} from Player ${robbedPlayer.index + 1} ---
+          `${this.getCurrPlayer().name} stole ${resourceToString(availableResources[stolenResource])} from Player ${robbedPlayer.index + 1} ---
       ${this.getCurrPlayer().name}'s turn!`;
       } else {
         this.instructionText =
-        `${this.getCurrPlayer().name} couldn't steal ${resourceToString(availableResources[stolenResource])} from Player ${robbedPlayer.index + 1} ---
+          `${this.getCurrPlayer().name} couldn't steal ${resourceToString(availableResources[stolenResource])} from Player ${robbedPlayer.index + 1} ---
       ${this.getCurrPlayer().name}'s turn!`;
 
       }
@@ -677,35 +682,35 @@ export default class Game {
     }
 
     switch (hex.resourceType) {
-    case ResourceType.AnyPort:
-      return [ 3, 3, 3, 3, 3 ];
-    case ResourceType.WoodPort:
-      return [ 2, 4, 4, 4, 4 ];
-    case ResourceType.BrickPort:
-      return [ 4, 2, 4, 4, 4 ];
-    case ResourceType.SheepPort:
-      return [ 4, 4, 2, 4, 4 ];
-    case ResourceType.GrainPort:
-      return [ 4, 4, 4, 2, 4 ];
-    case ResourceType.OrePort:
-      return [ 4, 4, 4, 4, 2 ];
-    default:
-      return undefined;
+      case ResourceType.AnyPort:
+        return [3, 3, 3, 3, 3];
+      case ResourceType.WoodPort:
+        return [2, 4, 4, 4, 4];
+      case ResourceType.BrickPort:
+        return [4, 2, 4, 4, 4];
+      case ResourceType.SheepPort:
+        return [4, 4, 2, 4, 4];
+      case ResourceType.GrainPort:
+        return [4, 4, 4, 2, 4];
+      case ResourceType.OrePort:
+        return [4, 4, 4, 4, 2];
+      default:
+        return undefined;
     }
   }
 
-  getAllValidBuildActions(playerIdx: number){
+  getAllValidBuildActions(playerIdx: number) {
     const playerPremoves = this.getPremoves(playerIdx);
     console.log('using Player Premove set for player ' + playerIdx + ': ' + playerPremoves.length);
-    const myBuildActions: BuildAction[]= this.map.buildableRoadLocations(playerIdx, playerPremoves)
+    const myBuildActions: BuildAction[] = this.map.buildableRoadLocations(playerIdx, playerPremoves)
       .map(edgeCoords => new BuildRoadAction(playerIdx, edgeCoords));
 
-    for(const action of this.map.buildableTownLocations(playerIdx, playerPremoves)
+    for (const action of this.map.buildableTownLocations(playerIdx, playerPremoves)
       .map(vertexCoords => new BuildSettlementAction(playerIdx, vertexCoords))) {
       myBuildActions.push(action);
     }
 
-    for(const action of this.map.buildableTownLocations(playerIdx, playerPremoves)
+    for (const action of this.map.buildableTownLocations(playerIdx, playerPremoves)
       .map(vertexCoords => new BuildCityAction(playerIdx, vertexCoords))) {
       myBuildActions.push(action);
     }
@@ -717,19 +722,19 @@ export default class Game {
     const playerPremoves = this.getPremoves(playerIdx);
     console.log('get valid build actions: ' + type.toString());
     switch (type) {
-    case BuildActionType.Road:
-      return this.map.buildableRoadLocations(playerIdx, playerPremoves)
-        .map(edgeCoords => new BuildRoadAction(playerIdx, edgeCoords));
+      case BuildActionType.Road:
+        return this.map.buildableRoadLocations(playerIdx, playerPremoves)
+          .map(edgeCoords => new BuildRoadAction(playerIdx, edgeCoords));
 
-    case BuildActionType.Settlement:
-      return this.map.buildableTownLocations(playerIdx, playerPremoves)
-        .map(vertexCoords => new BuildSettlementAction(playerIdx, vertexCoords));
-    case BuildActionType.City:
-      return this.map.buildableCityLocations(playerIdx)
-        .map(vertexCoords => new BuildCityAction(playerIdx, vertexCoords));
+      case BuildActionType.Settlement:
+        return this.map.buildableTownLocations(playerIdx, playerPremoves)
+          .map(vertexCoords => new BuildSettlementAction(playerIdx, vertexCoords));
+      case BuildActionType.City:
+        return this.map.buildableCityLocations(playerIdx)
+          .map(vertexCoords => new BuildCityAction(playerIdx, vertexCoords));
 
-    default:
-      throw new Error(`getValidBuildActions unsupported BuildActionType: ${actionToString(type)}`);
+      default:
+        throw new Error(`getValidBuildActions unsupported BuildActionType: ${actionToString(type)}`);
     }
   }
 
