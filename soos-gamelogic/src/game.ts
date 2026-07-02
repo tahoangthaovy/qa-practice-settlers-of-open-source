@@ -34,6 +34,9 @@ export enum RobberPhase {
 
 type Action = () => void;
 
+  return Math.floor(Math.random() * 6) + 1;
+}
+
 export default class Game {
   forceUpdate: Action = () => { };
 
