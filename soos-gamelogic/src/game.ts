@@ -71,7 +71,7 @@ export default class Game {
     this.map = new GameMap();
     this.robberLocation = this.map.robberLocation;
     this.gamePhase = GamePhase.PlaceSettlement1;
-    this.instructionText = 'Game Started! Player 1 place first settlement.js';
+    this.instructionText = 'Game Started! Player 1 place first settlement';
     this.robberHexes = [];
     this.premoveActions = [];
     // if (options.debugAutoPickSettlements) {
